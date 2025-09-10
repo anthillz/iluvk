@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>I LOVE MY GIRLFRIEND!</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab&family=Sacramento&display=swap');
+
+    html, body {
+      margin: 0;
+      height: 100vh;
+      background: #000;
+      overflow: hidden;
+      font-family: 'Roboto Slab', serif;
+      color: white;
+      position: relative;
+    }
+    #container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: black;
+    }
+    img {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 100vw;
+      height: auto;
+      max-height: 100vh;
+      object-fit: contain;
+      transform: translate(-50%, -50%);
+      opacity: 0;
+      transition: opacity 2s ease;
+      z-index: 1;
+    }
+    #text-wrapper {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      opacity: 0;
+      transition: opacity 2s ease;
+      z-index: 2;
+      user-select: none;
+      pointer-events: none;
+      width: 90vw;
+    }
+    #main-text {
+      font-size: 3.5em;
+      font-weight: bold;
+      margin-bottom: 0.2em;
+      font-family: 'Roboto Slab', serif;
+      text-shadow: 2px 2px 4px #000;
+    }
+    #sub-text {
+      font-family: 'Sacramento', cursive;
+      font-size: 2.5em;
+      letter-spacing: 0.1em;
+      text-shadow: 1px 1px 3px #000;
+    }
+    #start-btn {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 9999;
+      padding: 1em 2em;
+      font-size: 1.5em;
+      cursor: pointer;
+      background: #444;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      user-select: none;
+    }
+    #volume-container {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      width: 160px;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      z-index: 9999;
+      user-select: none;
+    }
+    #volume-label {
+      margin-bottom: 0.3em;
+      font-weight: bold;
+      font-size: 0.9em;
+    }
+    #volume-control {
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <img id="img-bow-kiss" src="bow_kiss.jpg" alt="Bow Kiss" />
+    <img id="img-kiss" src="kiss.jpg" alt="Kiss" />
+    <img id="img-lay-on" src="lay_on.jpg" alt="Lay On" />
+    <img id="img-side-stare" src="side_stare.jpg" alt="Side Stare" />
+    <img id="img-stare" src="stare.jpg" alt="Stare" />
+
+    <div id="text-wrapper">
+      <div id="main-text">I LOVE MY GIRLFRIEND KRISTINA!</div>
+      <div id="sub-text">K LOVE A FOREVER!</div>
+    </div>
+  </div>
+
+  <button id="start-btn">Start</button>
+
+  <div id="volume-container">
+    <label id="volume-label" for="volume-control">Volume</label>
+    <input
+      type="range"
+      id="volume-control"
+      min="0"
+      max="1"
+      step="0.01"
+      value="0.5"
+    />
+  </div>
+
+  <audio id="bg-audio" src="island.wav" loop></audio>
+
+  <script>
+    const images = [
+      document.getElementById('img-kiss'),
+      document.getElementById('img-lay-on'),
+      document.getElementById('img-side-stare'),
+      document.getElementById('img-stare')
+    ];
+
+    const bowKiss = document.getElementById('img-bow-kiss');
+    const textWrapper = document.getElementById('text-wrapper');
+    const startBtn = document.getElementById('start-btn');
+    const audio = document.getElementById('bg-audio');
+
+    const volumeContainer = document.getElementById('volume-container');
+    const volumeControl = document.getElementById('volume-control');
+
+    function fadeIn(element) {
+      element.style.opacity = 1;
+    }
+
+    function fadeOut(element) {
+      element.style.opacity = 0;
+    }
+
+    function slideshow(index) {
+      images.forEach(img => fadeOut(img));
+
+      const current = images[index];
+      fadeIn(current);
+
+      setTimeout(() => {
+        fadeOut(current);
+        setTimeout(() => {
+          slideshow((index + 1) % images.length);
+        }, 2000);
+      }, 15000);
+    }
+
+    function runSequence() {
+      fadeIn(bowKiss);
+
+      setTimeout(() => {
+        fadeIn(textWrapper);
+
+        setTimeout(() => {
+          fadeOut(textWrapper);
+          fadeOut(bowKiss);
+
+          setTimeout(() => {
+            slideshow(0);
+          }, 2000);
+        }, 10000);
+      }, 2000 + 5000);
+    }
+
+    // Volume slider logic
+    volumeControl.addEventListener('input', () => {
+      const val = parseFloat(volumeControl.value);
+      const midpoint = 0.5;
+      let volume;
+
+      if (val === 0 || val === 1) {
+        volume = 1;          // max volume at ends
+        volumeControl.disabled = true; // lock slider
+      } else {
+        volumeControl.disabled = false;
+        volume = Math.abs(val - midpoint) * 2; // scale 0 to 1 from center
+      }
+
+      audio.volume = volume;
+      audio.muted = (volume === 0);
+    });
+
+    startBtn.onclick = () => {
+  // Reset mute and volume first
+  audio.muted = false;
+  audio.volume = 0.5; // start medium volume
+
+  // Play audio immediately
+  audio.play().then(() => {
+    console.log('Audio playing');
+  }).catch(e => {
+    console.log('Audio play prevented:', e);
+  });
+
+  // Set volume slider UI and show it
+  volumeControl.value = '0.5';
+  volumeContainer.style.display = 'flex';
+
+  // Run slideshow sequence
+  runSequence();
+
+  // Hide start button after click
+  startBtn.style.display = 'none';
+    };
+  </script>
+</body>
+</html>
